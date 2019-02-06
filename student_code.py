@@ -142,8 +142,66 @@ class KnowledgeBase(object):
         """
         ####################################################
         # Student code goes here
-
-
+        if isinstance(fact_or_rule,Rule):
+            if fact_or_rule not in self.rules:
+                return "Rule is not in the KB"
+            else:
+                return self.explain_helper(fact_or_rule, 0, "")
+        elif isinstance(fact_or_rule,Fact):
+            if fact_or_rule not in self.facts:
+                return "Fact is not in the KB"
+            else:
+                return self.explain_helper(fact_or_rule, 0, "")
+        else:
+            return False
+        
+    def explain_helper(self, fact_or_rule, indent, res):
+        if isinstance(fact_or_rule, Fact):
+            for i in range(indent):
+                res += " "
+            res += "fact: " + str(fact_or_rule.statement)
+            index = self.facts.index(fact_or_rule)
+            if self.facts[index].asserted == True:
+                res += " " + "ASSERTED"
+            if self.facts[index].supported_by:
+                res += "\n"
+                for i in range(len(self.facts[index].supported_by)):
+                    for ii in range(indent+2):
+                        res += " "
+                    res += "SUPPORTED BY\n"
+                    res = self.explain_helper(self.facts[index].supported_by[i][0], indent + 4, res)
+                    res += "\n"
+                    res = self.explain_helper(self.facts[index].supported_by[i][1], indent + 4, res)
+                    if i != len(self.facts[index].supported_by) - 1:
+                        res += "\n"
+            return res
+        elif isinstance(fact_or_rule, Rule):
+            for i in range(indent):
+                res += " "
+            res += "rule: ("
+            for i in range(len(fact_or_rule.lhs)):
+                res += str(fact_or_rule.lhs[i])
+                if i == len(fact_or_rule.lhs) - 1:
+                    res += ")"
+                else:
+                    res += ", "
+            res += " -> " + str(fact_or_rule.rhs)
+            index = self.rules.index(fact_or_rule)
+            if self.rules[index].asserted == True:
+                res += " " + "ASSERTED"
+            if self.rules[index].supported_by:
+                res += "\n"
+                for i in range(len(self.rules[index].supported_by)):
+                    for ii in range(indent+2):
+                        res += " "
+                    res += "SUPPORTED BY\n"
+                    res = self.explain_helper(self.rules[index].supported_by[i][0], indent + 4, res)
+                    res += "\n"
+                    res = self.explain_helper(self.rules[index].supported_by[i][1], indent + 4, res)
+                    if i != len(self.rules[index].supported_by) - 1:
+                        res += "\n"
+            return res
+            
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
         """Forward-chaining to infer new facts and rules
